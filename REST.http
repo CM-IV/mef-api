@@ -1,0 +1,31 @@
+### Test POST Method
+POST http://localhost:8080/api/posts HTTP/1.1
+content-type: application/json
+
+{
+
+    "image": "https://i.ibb.co/5Rmp215/monero-min.jpg",
+    "title": "Here's your title",
+    "subtitle": "Subtitle Test",
+    "content": "Here is some test content, basically a paragraph."
+
+}
+
+### Test GET Method
+GET http://localhost:8080/api/posts/15 HTTP/1.1
+
+
+### Test GET List Method
+GET http://localhost:8080/api/posts?page_id=5&page_size=5 HTTP/1.1
+
+### Test PUT Method
+PUT http://localhost:8080/api/posts/7
+content-type: application/json
+
+{
+    "content": "I have also changed this YEEET."
+
+}
+
+### Test DELETE Method
+DELETE http://localhost:8080/api/posts/5
