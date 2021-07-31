@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"gitea.divdev.rocks/Occidental-Tech/mef_api/db/util"
+	"gitea.civdev.rocks/Occidental-Tech/mef_api/db/util"
 
 	"github.com/stretchr/testify/require"
 )
