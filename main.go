@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"log"
 
-	"gitea.divdev.rocks/Occidental-Tech/mef_api/api"
-	db "gitea.divdev.rocks/Occidental-Tech/mef_api/db/sqlc"
+	"gitea.civdev.rocks/Occidental-Tech/mef_api/api"
+	db "gitea.civdev.rocks/Occidental-Tech/mef_api/db/sqlc"
 	_ "github.com/lib/pq"
 )
 
