@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	db "gitea.divdev.rocks/Occidental-Tech/mef_api/db/sqlc"
+	db "gitea.civdev.rocks/Occidental-Tech/mef_api/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 

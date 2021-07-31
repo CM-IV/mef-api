@@ -1,4 +1,4 @@
-module gitea.divdev.rocks/Occidental-Tech/mef_api
+module gitea.civdev.rocks/Occidental-Tech/mef_api
 
 go 1.16
 
