@@ -11,10 +11,10 @@ postgres-down:
 	docker-compose down
 
 createdb:
-	docker exec -it mef_api_db_1 createdb --username=root --owner=root meforum
+	docker exec -it mef-api_db_1 createdb --username=root --owner=root meforum
 
 dropdb:
-	docker exec -it mef_api_db_1 dropdb meforum
+	docker exec -it mef-api_db_1 dropdb meforum
 
 migrateup:
 	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up
