@@ -1,1 +1,3 @@
 DROP TABLE IF EXISTS posts;
+
+DROP INDEX IF EXISTS title;
