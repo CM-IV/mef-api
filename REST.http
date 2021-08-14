@@ -5,9 +5,9 @@ content-type: application/json
 {
 
     "image": "https://i.ibb.co/5Rmp215/monero-min.jpg",
-    "title": "Here's your title",
-    "subtitle": "Subtitle Test",
-    "content": "Here is some test content, basically a paragraph.  Here's another sentence to go along with the paragraph."
+    "title": "Another title here",
+    "subtitle": "Subtitle Test YEEE",
+    "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. At consectetur lorem donec massa sapien faucibus. Libero nunc consequat interdum varius sit. Nulla facilisi etiam dignissim diam. Felis imperdiet proin fermentum leo vel orci porta. Enim blandit volutpat maecenas volutpat blandit aliquam etiam erat. Sit amet dictum sit amet justo donec enim diam. Semper auctor neque vitae tempus quam. Nulla posuere sollicitudin aliquam ultrices. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus. Ac ut consequat semper viverra nam libero."
 
 }
 
@@ -19,13 +19,13 @@ GET http://localhost:8080/api/posts/3 HTTP/1.1
 GET http://localhost:8080/api/posts?page_id=1&page_size=8 HTTP/1.1
 
 ### Test PUT Method
-PUT http://localhost:8080/api/posts/2
+PUT http://localhost:8080/api/posts/30
 content-type: application/json
 
 {
-    "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. At consectetur lorem donec massa sapien faucibus. Libero nunc consequat interdum varius sit. Nulla facilisi etiam dignissim diam. Felis imperdiet proin fermentum leo vel orci porta. Enim blandit volutpat maecenas volutpat blandit aliquam etiam erat. Sit amet dictum sit amet justo donec enim diam. Semper auctor neque vitae tempus quam. Nulla posuere sollicitudin aliquam ultrices. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus. Ac ut consequat semper viverra nam libero."
+    "content": "awsdinawoidnaowdinawdinawodinoeiugoefiawferupwefmpom Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. At consectetur lorem donec massa sapien faucibus. Libero nunc consequat interdum varius sit. Nulla facilisi etiam dignissim diam. Felis imperdiet proin fermentum leo vel orci porta. Enim blandit volutpat maecenas volutpat blandit aliquam etiam erat. Sit amet dictum sit amet justo donec enim diam. Semper auctor neque vitae tempus quam. Nulla posuere sollicitudin aliquam ultrices. Porttitor massa id neque aliquam vestibulum morbi blandit cursus risus. Ac ut consequat semper viverra nam libero."
 
 }
 
 ### Test DELETE Method
-DELETE http://localhost:8080/api/posts/10
+DELETE http://localhost:8080/api/posts/5

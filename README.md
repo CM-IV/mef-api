@@ -265,7 +265,7 @@ type Post struct {
 }
 ```
 
-The post.sql.go file that interfaces with the PostgreSQL DB is generated along with the previously shown files.  This go code is both type-safe and idiomatic, allowing the programmer to write his/her own custom API application code.  The `CreatePost`, `GetPost`, `ListPosts`, `UpdatePosts`, and `DeletePost` is within this file.
+The post.sql.go file that interfaces with the PostgreSQL DB is generated along with the previously shown files.  This go code is both type-safe and idiomatic, allowing the programmer to write his/her own custom API application code.  The `CreatePost`, `GetPost`, `ListPosts`, `UpdatePosts`, and `DeletePost` generated functions are within this file.
 
 *post.sql.go*
 ```
@@ -412,3 +412,16 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 	return i, err
 }
 ```
+
+The SQL query along with the type struct for each function precedes the generated Go code for that respective operation.  `DeletePost` and `GetPost` do not have types defined for them, as they are the only exceptions.
+
+---
+
+### Custom CRUD Implementation
+
+This custom application code allows the various CRUD operations to execute within a few miliseconds time at worst, and faster than one milisecond at best.  A slice of posts is used as the dynamic datastructure when listing the posts on the page, so we are dealing with pointers to the array.  Slices let us work with dynamically sized collections of posts, whilst abstracting the array itself and pointing to a contiguous section of the array in memory.  The slice of posts uses a for loop to seed each row in the post.  The columns are then copied in the current row into the values pointed at by the destination.
+
+To see this code, check out the previously shown post.sql.go file.
+
+The post.go file starts of with the various types that are needed by their respective functions.
+
