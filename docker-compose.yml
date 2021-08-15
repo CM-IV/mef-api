@@ -10,7 +10,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=root
     volumes:
-      - /home/cmiv/Documents/code_prod/go/mef_api/db/data:/var/lib/data
+      - /home/cmiv/Documents/code_prod/go/mef-api/db/data:/var/lib/data
 #Use this command to pre seed the db with SQL
       
 #cat <./path/to/.sql> | docker exec -i <container_name> psql -U postgres -d <db_name>
