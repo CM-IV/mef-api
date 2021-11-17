@@ -6,22 +6,26 @@ import (
 	"os"
 	"testing"
 
+	"gitea.civdev.rocks/Occidental-Tech/mef-api/db/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable"
-)
+
 
 var testQueries *Queries
 var testDB *sql.DB
 
 func TestMain(m *testing.M) {
 
-	var err error
+	config, err := util.LoadConfig("../..")
+	if err != nil {
 
-	testDB, err := sql.Open(dbDriver, dbSource)
+		log.Fatal("cannot load config", err)
+
+	}
+
+
+	testDB, err := sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
 
