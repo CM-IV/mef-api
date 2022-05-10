@@ -17,10 +17,10 @@ dropdb:
 	docker exec -it mef-api_db_1 dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up
+	migrate -path db/migration -database "postgresql://postgres:PLMqaztgv435@db.fncomjorbfprbxiwqyul.supabase.co:5432/postgres" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down
+	migrate -path db/migration -database "postgresql://postgres:PLMqaztgv435@db.fncomjorbfprbxiwqyul.supabase.co:5432/postgres" -verbose down
 
 sqlc:
 	sqlc generate
@@ -32,7 +32,7 @@ server:
 	go run main.go
 
 mock:
-	mockgen -package mockdb -destination db/mock/store.go gitea.civdev.rocks/Occidental-Tech/mef-api/db/sqlc Store
+	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
 .PHONY: postgres-up postgres-down postgres-start postgres-stop createdb dropdb migrateup migratedown sqlc test server mock

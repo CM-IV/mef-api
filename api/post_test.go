@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mockdb "gitea.civdev.rocks/Occidental-Tech/mef-api/db/mock"
-	db "gitea.civdev.rocks/Occidental-Tech/mef-api/db/sqlc"
-	"gitea.civdev.rocks/Occidental-Tech/mef-api/db/util"
+	mockdb "github.com/CM-IV/mef-api/db/mock"
+	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/db/util"
 	"github.com/golang/mock/gomock"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
@@ -21,18 +21,16 @@ func TestGetPostAPI(t *testing.T) {
 
 	post := randomPost()
 
-	testCases := []struct{
-
-		title string
-		postID int64
-		buildStubs func(store *mockdb.MockStore)
+	testCases := []struct {
+		title         string
+		postID        int64
+		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
-
 	}{
 
 		{
 
-			title: "OK",
+			title:  "OK",
 			postID: post.ID,
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -48,11 +46,10 @@ func TestGetPostAPI(t *testing.T) {
 				requireBodyMatchPost(t, recorder.Body, post)
 
 			},
-
 		},
 		{
 
-			title: "NotFound",
+			title:  "NotFound",
 			postID: post.ID,
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -66,11 +63,10 @@ func TestGetPostAPI(t *testing.T) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
 
 			},
-
 		},
 		{
 
-			title: "InternalError",
+			title:  "InternalError",
 			postID: post.ID,
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -84,11 +80,10 @@ func TestGetPostAPI(t *testing.T) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 
 			},
-
 		},
 		{
 
-			title: "InvalidID",
+			title:  "InvalidID",
 			postID: 0,
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -101,10 +96,7 @@ func TestGetPostAPI(t *testing.T) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
 
 			},
-
 		},
-		
-
 	}
 
 	for i := range testCases {
@@ -131,21 +123,20 @@ func TestGetPostAPI(t *testing.T) {
 			tc.checkResponse(t, recorder)
 
 		})
-		
+
 	}
-	
+
 }
 
 func randomPost() db.Post {
 
 	return db.Post{
 
-		ID: util.RandomInt(1, 1000),
+		ID:       util.RandomInt(1, 1000),
 		Image:    util.RandomImage(),
 		Title:    util.RandomTitle(),
 		Subtitle: util.RandomSubtitle(),
 		Content:  util.RandomContent(),
-
 	}
 
 }

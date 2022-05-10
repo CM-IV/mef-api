@@ -1,7 +1,7 @@
 package api
 
 import (
-	db "gitea.civdev.rocks/Occidental-Tech/mef-api/db/sqlc"
+	db "github.com/CM-IV/mef-api/db/sqlc"
 	"github.com/gin-gonic/gin"
 )
 

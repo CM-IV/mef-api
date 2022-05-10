@@ -6,11 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"gitea.civdev.rocks/Occidental-Tech/mef-api/db/util"
+	"github.com/CM-IV/mef-api/db/util"
 	_ "github.com/lib/pq"
 )
-
-
 
 var testQueries *Queries
 
@@ -22,7 +20,6 @@ func TestMain(m *testing.M) {
 		log.Fatal("cannot load config", err)
 
 	}
-
 
 	testDB, err := sql.Open(config.DBDriver, config.DBSource)
 

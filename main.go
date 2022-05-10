@@ -4,13 +4,11 @@ import (
 	"database/sql"
 	"log"
 
-	"gitea.civdev.rocks/Occidental-Tech/mef-api/api"
-	db "gitea.civdev.rocks/Occidental-Tech/mef-api/db/sqlc"
-	"gitea.civdev.rocks/Occidental-Tech/mef-api/db/util"
+	"github.com/CM-IV/mef-api/api"
+	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/db/util"
 	_ "github.com/lib/pq"
 )
-
-
 
 func main() {
 
