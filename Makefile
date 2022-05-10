@@ -29,10 +29,10 @@ dropdb:
 	docker exec -it postgres dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/postgres?sslmode=disable" -verbose down
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down
 
 sqlc:
 	sqlc generate
