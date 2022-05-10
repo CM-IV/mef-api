@@ -1,12 +1,6 @@
 network:
 	docker network create mef-network
 
-build:
-	docker build -t mef:latest .
-
-run:
-	docker run --name mef --network mef-network -p 8080:8080 -e DB_SOURCE="postgresql://root:postgres@postgres:5432/meforum?sslmode=disable" mef:latest
-
 postgres:
 	docker run --name postgres --network mef-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
 
@@ -50,4 +44,4 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
-.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock postgres run build network
+.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock postgres network
