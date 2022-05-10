@@ -47,7 +47,10 @@ jobs:
       run: go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 
     - name: Run sqlc generate
-      run: sqlc generate
+      run: make sqlc
+
+    - name: Install viper
+      run: go get github.com/spf13/viper
 
     - name: Test
       run: make test
