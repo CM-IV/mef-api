@@ -43,5 +43,11 @@ jobs:
     - name: Run migrations
       run: make migrateup
 
+    - name: Install sqlc
+      run: go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+
+    - name: Run sqlc generate
+      run: sqlc generate
+
     - name: Test
       run: make test
