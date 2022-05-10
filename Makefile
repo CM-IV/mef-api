@@ -25,8 +25,11 @@ migratedown:
 sqlc:
 	sqlc generate
 
-test:
+test-insert:
 	go test -count=1 -v ./db/sqlc
+
+test:
+	go test -v -cover ./db/sqlc
 
 server:
 	go run main.go
