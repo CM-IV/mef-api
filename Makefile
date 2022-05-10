@@ -1,13 +1,21 @@
-postgres-up:
+include app.env
+
+build:
+	docker build -t mef:latest .
+
+run:
+	docker run --name mef -p 8080:8080 mef:latest
+
+composeup:
 	docker-compose up
 
-postgres-start:
+composestart:
 	docker-compose start
 
-postgres-stop:
+composestop:
 	docker-compose stop	
 
-postgres-down:
+composedown:
 	docker-compose down
 
 createdb:
@@ -17,10 +25,10 @@ dropdb:
 	docker exec -it mef-api_db_1 dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "postgresql://postgres:PLMqaztgv435@db.fncomjorbfprbxiwqyul.supabase.co:5432/postgres" -verbose up
+	migrate -path db/migration -database "$(DB_SOURCE)" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://postgres:PLMqaztgv435@db.fncomjorbfprbxiwqyul.supabase.co:5432/postgres" -verbose down
+	migrate -path db/migration -database "$(DB_SOURCE)" -verbose down
 
 sqlc:
 	sqlc generate
@@ -38,4 +46,4 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
-.PHONY: postgres-up postgres-down postgres-start postgres-stop createdb dropdb migrateup migratedown sqlc test server mock
+.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock
