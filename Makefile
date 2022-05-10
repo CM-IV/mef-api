@@ -1,10 +1,14 @@
-include app.env
+network:
+	docker network create mef-network
 
 build:
 	docker build -t mef:latest .
 
 run:
-	docker run --name mef -p 8080:8080 mef:latest
+	docker run --name mef --network mef-network -p 8080:8080 -e DB_SOURCE="postgresql://root:postgres@postgres:5432/meforum?sslmode=disable" mef:latest
+
+postgres:
+	docker run --name postgres --network mef-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
 
 composeup:
 	docker-compose up
@@ -19,16 +23,16 @@ composedown:
 	docker-compose down
 
 createdb:
-	docker exec -it mef-api_db_1 createdb --username=root --owner=root meforum
+	docker exec -it postgres createdb --username=root --owner=root meforum
 
 dropdb:
-	docker exec -it mef-api_db_1 dropdb meforum
+	docker exec -it postgres dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "$(DB_SOURCE)" -verbose up
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "$(DB_SOURCE)" -verbose down
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/postgres?sslmode=disable" -verbose down
 
 sqlc:
 	sqlc generate
@@ -46,4 +50,4 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
-.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock
+.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock postgres run build network

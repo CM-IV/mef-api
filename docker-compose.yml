@@ -1,5 +1,14 @@
 version: '3.1'
 services:
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=meforum
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=root
+    ports: 
+      - "5432:5432"
   api:
     build:
       context: .
@@ -7,18 +16,11 @@ services:
     ports: 
       - "8080:8080"
     environment:
-      - DB_SOURCE=postgresql://postgres:PLMqaztgv435@db.fncomjorbfprbxiwqyul.supabase.co:5432/postgres
-  # db:
-  #   image: postgres:13-alpine
-  #   restart: always
-  #   ports:
-  #     - 5432:5432
-  #   environment:
-  #     - POSTGRES_DB=meforum
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_USER=root
-  #   volumes:
-  #     - /home/cmiv/Documents/code_prod/go/mef-api/db/data:/var/lib/data
+      - DB_SOURCE=postgresql://root:postgres@postgres:5432/meforum?sslmode=disable
+    depends_on:
+      - postgres
+    entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ]
+    command: [ "/app/main" ]
 #Use this command to pre seed the db with SQL
       
 #cat <./path/to/.sql> | docker exec -i <container_name> psql -U postgres -d <db_name>
