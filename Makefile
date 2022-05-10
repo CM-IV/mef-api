@@ -1,4 +1,4 @@
-include app.env
+include .app.env
 
 build:
 	docker build -t mef:latest .
