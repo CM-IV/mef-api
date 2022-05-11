@@ -64,7 +64,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, post)
+	ctx.JSON(http.StatusCreated, post)
 
 }
 
