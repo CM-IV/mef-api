@@ -14,7 +14,8 @@ Dockerized REST API and PostgreSQL database used featuring sqlc type-safe Go gen
 3. [PostgreSQL Queries and Migrations](#postgresql-queries-and-migrations)
 4. [sqlc Generator](#sqlc-generator)
 5. [Custom CRUD Implementation](#custom-crud-implementation)
-6. [Unit Tests and RSG Util](#unit-tests-and-rsg-util)
+6. [Unit Tests and RSG Util](#unit-tests-and-rsg-util) (Documentation In Progress)
+6. [Mocked DB for HTTP API testing](#unit-tests-and-rsg-util) (Documentation In Progress)
 
 ---
 
@@ -48,11 +49,11 @@ Additional commands for DB migrations, sqlc code generation, and testing will be
 *Makefile*
 
 ```makefile
-build:
-	docker build -t mef:latest .
+network:
+	docker network create mef-network
 
-run:
-	docker run --name mef -p 8080:8080 mef:latest
+postgres:
+	docker run --name postgres --network mef-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
 
 composeup:
 	docker-compose up
@@ -67,16 +68,22 @@ composedown:
 	docker-compose down
 
 createdb:
-	docker exec -it mef-api_db_1 createdb --username=root --owner=root meforum
+	docker exec -it mef-api-postgres-1 createdb --username=root --owner=root meforum
 
 dropdb:
-	docker exec -it mef-api_db_1 dropdb meforum
+	docker exec -it mef-api-postgres-1 dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "$(DB_SOURCE)" -verbose up
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "$(DB_SOURCE)" -verbose down
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down
+
+migrateup1:
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up 1
+
+migratedown1:
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down 1
 
 sqlc:
 	sqlc generate
@@ -94,7 +101,7 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
-.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock
+.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown  migrateup1 migratedown1 sqlc test server mock postgres network
 ```
 
 ---
@@ -122,12 +129,27 @@ CREATE TABLE "posts" (
 
 CREATE INDEX ON "posts" ("title");
 ```
+The second up migration created with [golang-migrate](https://github.com/golang-migrate/migrate) allows us to implement the user entity, along with creating the `uuid-ossp` database extension so that the PostgreSQL database can create UUIDs for each new user.  This second migration file, called `000002_add_users.up.sql`, creates the foreign key inside of the `posts` table that references the `user_name` entry within the `users` table.  It is also important to note the composite unique index constraint that has been added, this will prevent the same user from making multiple entries with the same title.
 
-This will be extended to include tables for the other pages (Agenda page) of the website, and custom CRUD functionality will be implemented as well.
+*000002_add_users.up.sql*
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-Some sort of user entity with admin permissions would most likely be implemented as well so that he/she can create the posts.
+CREATE TABLE "users" (
+  "id" uuid DEFAULT uuid_generate_v4(),
+  "user_name" varchar UNIQUE NOT NULL,
+  "hashed_password" varchar NOT NULL,
+  "full_name" varchar NOT NULL,
+  "email" varchar UNIQUE NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  PRIMARY KEY (id)
+);
 
-Currently each post shows the timestamp along with the timezone of when it was created.  This appears on each card within the frontend client on the homepage.
+ALTER TABLE "posts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("user_name");
+
+-- CREATE UNIQUE INDEX ON "posts" ("title", "owner");
+ALTER TABLE "posts" ADD CONSTRAINT "owner_title_key" UNIQUE ("title", "owner");
+```
 
 **Queries**
 
@@ -507,7 +529,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 }
 ```
 
-The `errorResponse()` function here points to the implementation inside the `server.go` file.  This is a `gin.H` object, which is basically a map[string]interface{}.  This allows us to store however many key value pairs we want.
+The `errorResponse()` function here points to the implementation inside the `server.go` file.  This is a `gin.H` object, which is basically a `map[string]interface{}`.  This allows us to store however many key value pairs we want.
 
 *server.go*
 ```go
