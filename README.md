@@ -1,7 +1,7 @@
 # Monero Economic Forum API
 ## Written in *Gin* Go Web Framework
 
-By [Charlie](https://civdev.rocks) (CM-IV)
+By [Charlie](https://home.civdev.xyz) (CM-IV)
 
 Dockerized PostgreSQL database used featuring sqlc type-safe Go generator.
 
