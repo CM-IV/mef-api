@@ -11,17 +11,19 @@ import (
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
+  owner,
   image,
   title,
   subtitle,
   content
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 )
-RETURNING id, image, title, subtitle, content, created_at
+RETURNING id, owner, image, title, subtitle, content, created_at
 `
 
 type CreatePostParams struct {
+	Owner    string `json:"owner"`
 	Image    string `json:"image"`
 	Title    string `json:"title"`
 	Subtitle string `json:"subtitle"`
@@ -30,6 +32,7 @@ type CreatePostParams struct {
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
 	row := q.db.QueryRowContext(ctx, createPost,
+		arg.Owner,
 		arg.Image,
 		arg.Title,
 		arg.Subtitle,
@@ -38,6 +41,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 	var i Post
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Image,
 		&i.Title,
 		&i.Subtitle,
@@ -58,7 +62,7 @@ func (q *Queries) DeletePost(ctx context.Context, id int64) error {
 }
 
 const getPost = `-- name: GetPost :one
-SELECT id, image, title, subtitle, content, created_at FROM posts
+SELECT id, owner, image, title, subtitle, content, created_at FROM posts
 WHERE id = $1 LIMIT 1
 `
 
@@ -67,6 +71,7 @@ func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
 	var i Post
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Image,
 		&i.Title,
 		&i.Subtitle,
@@ -77,7 +82,7 @@ func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
 }
 
 const listPosts = `-- name: ListPosts :many
-SELECT id, image, title, subtitle, content, created_at FROM posts
+SELECT id, owner, image, title, subtitle, content, created_at FROM posts
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -99,6 +104,7 @@ func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, e
 		var i Post
 		if err := rows.Scan(
 			&i.ID,
+			&i.Owner,
 			&i.Image,
 			&i.Title,
 			&i.Subtitle,
@@ -122,7 +128,7 @@ const updatePost = `-- name: UpdatePost :one
 UPDATE posts
 SET content = $2
 WHERE id = $1
-RETURNING id, image, title, subtitle, content, created_at
+RETURNING id, owner, image, title, subtitle, content, created_at
 `
 
 type UpdatePostParams struct {
@@ -135,6 +141,7 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 	var i Post
 	err := row.Scan(
 		&i.ID,
+		&i.Owner,
 		&i.Image,
 		&i.Title,
 		&i.Subtitle,

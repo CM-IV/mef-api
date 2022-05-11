@@ -16,6 +16,7 @@ func NewServer(store db.Store) *Server {
 
 	server := &Server{store: store}
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
 	router.Use(CORSMiddleware())
 

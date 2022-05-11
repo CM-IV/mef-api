@@ -10,6 +10,7 @@ import (
 
 type Post struct {
 	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
 	Image     string    `json:"image"`
 	Title     string    `json:"title"`
 	Subtitle  string    `json:"subtitle"`

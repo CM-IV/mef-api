@@ -9,6 +9,7 @@ import (
 )
 
 type createPostRequest struct {
+	Owner    string `json:"owner" binding:"required"`
 	Image    string `json:"image" binding:"required"`
 	Title    string `json:"title" binding:"required"`
 	Subtitle string `json:"subtitle" binding:"required"`
@@ -40,6 +41,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	arg := db.CreatePostParams{
 
+		Owner:    req.Owner,
 		Image:    req.Image,
 		Title:    req.Title,
 		Subtitle: req.Subtitle,

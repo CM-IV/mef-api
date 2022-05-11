@@ -1,11 +1,12 @@
 -- name: CreatePost :one
 INSERT INTO posts (
+  owner,
   image,
   title,
   subtitle,
   content
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 )
 RETURNING *;
 

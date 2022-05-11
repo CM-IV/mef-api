@@ -1,5 +1,6 @@
 CREATE TABLE "posts" (
   "id" bigserial PRIMARY KEY,
+  "owner" varchar NOT NULL,
   "image" varchar NOT NULL,
   "title" varchar NOT NULL,
   "subtitle" varchar NOT NULL,
