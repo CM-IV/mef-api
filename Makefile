@@ -28,6 +28,12 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down
 
+migrateup1:
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up 1
+
+migratedown1:
+	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down 1
+
 sqlc:
 	sqlc generate
 
@@ -44,4 +50,4 @@ mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/CM-IV/mef-api/db/sqlc Store
 
 
-.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown sqlc test server mock postgres network
+.PHONY: composeupup composeupdown composeupstart composeupstop createdb dropdb migrateup migratedown  migrateup1 migratedown1 sqlc test server mock postgres network

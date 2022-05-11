@@ -6,6 +6,8 @@ package db
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Post struct {
@@ -16,4 +18,13 @@ type Post struct {
 	Subtitle  string    `json:"subtitle"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type User struct {
+	ID             uuid.UUID `json:"id"`
+	UserName       string    `json:"user_name"`
+	HashedPassword string    `json:"hashed_password"`
+	FullName       string    `json:"full_name"`
+	Email          string    `json:"email"`
+	CreatedAt      time.Time `json:"created_at"`
 }
