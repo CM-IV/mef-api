@@ -3,7 +3,7 @@
 
 By [Charlie](https://home.civdev.xyz) (CM-IV)
 
-Dockerized PostgreSQL database used featuring sqlc type-safe Go generator.
+Dockerized REST API and PostgreSQL database used featuring sqlc type-safe Go generator.
 
 ---
 
@@ -48,8 +48,6 @@ Additional commands for DB migrations, sqlc code generation, and testing will be
 *Makefile*
 
 ```makefile
-include .env
-
 build:
 	docker build -t mef:latest .
 
@@ -439,3 +437,83 @@ To see this code, check out the previously shown `post.sql.go` file.
 
 The `post.go` file starts off with the various type structs that are needed by their respective functions.  Luckily, the Gin web framework allows us to perform struct/field data validation with the [validator](https://github.com/go-playground/validator) package.
 
+*post.go*
+```go {post.go}
+package api
+
+import (
+	"database/sql"
+	"net/http"
+
+	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/gin-gonic/gin"
+)
+
+type createPostRequest struct {
+	Image    string `json:"image" binding:"required"`
+	Title    string `json:"title" binding:"required"`
+	Subtitle string `json:"subtitle" binding:"required"`
+	Content  string `json:"content" binding:"required"`
+}
+
+type getPostRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+type listPostRequest struct {
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=15"`
+}
+
+type updatePostRequest struct {
+	Content string `json:"content" binding:"required"`
+}
+```
+The `binding` tag gives conditions that need to be satisfied by the validator, and we use the `context` object to use the `ctx.ShouldBindJSON` function in order to pass input data from the request body.  With GIN, everything that is done inside of the handler has to do with the `context` object.  Checking the [validator](https://github.com/go-playground/validator) documentation, you can see more tags to use in order to validate your request parameters.  However, for this use case, only the `required` tag is needed.
+
+The `ctx.ShouldBindJSON` function returns an error, where if it is not empty - then the client has passed invalid data.  The error handling here will serialize the response and give the client a `400 - Bad Request`.
+
+*post.go*
+```go
+func (server *Server) createPost(ctx *gin.Context) {
+
+	var req createPostRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+
+	}
+
+	arg := db.CreatePostParams{
+
+		Image:    req.Image,
+		Title:    req.Title,
+		Subtitle: req.Subtitle,
+		Content:  req.Content,
+	}
+
+	post, err := server.store.CreatePost(ctx, arg)
+
+	if err != nil {
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+
+	}
+
+	ctx.JSON(http.StatusOK, post)
+
+}
+```
+
+The `errorResponse()` function here points to the implementation inside the `server.go` file.  This is a `gin.H` object, which is basically a map[string]interface{}.  This allows us to store however many key value pairs we want.
+
+*server.go*
+```go
+func errorResponse(err error) gin.H {
+
+	return gin.H{"error": err.Error()}
+
+}
+```

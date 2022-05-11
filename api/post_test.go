@@ -133,6 +133,7 @@ func randomPost() db.Post {
 	return db.Post{
 
 		ID:       util.RandomInt(1, 1000),
+		Owner:    util.RandomOwner(),
 		Image:    util.RandomImage(),
 		Title:    util.RandomTitle(),
 		Subtitle: util.RandomSubtitle(),

@@ -15,6 +15,7 @@ func createRandomPost(t *testing.T) Post {
 
 	arg := CreatePostParams{
 
+		Owner:    util.RandomOwner(),
 		Image:    util.RandomImage(),
 		Title:    util.RandomTitle(),
 		Subtitle: util.RandomSubtitle(),
@@ -25,6 +26,7 @@ func createRandomPost(t *testing.T) Post {
 	require.NoError(t, err)
 	require.NotEmpty(t, post)
 
+	require.Equal(t, arg.Owner, post.Owner)
 	require.Equal(t, arg.Image, post.Image)
 	require.Equal(t, arg.Title, post.Title)
 	require.Equal(t, arg.Subtitle, post.Subtitle)
@@ -51,6 +53,7 @@ func TestGetPost(t *testing.T) {
 	require.NotEmpty(t, post2)
 
 	require.Equal(t, post1.ID, post2.ID)
+	require.Equal(t, post1.Owner, post2.Owner)
 	require.Equal(t, post1.Image, post2.Image)
 	require.Equal(t, post1.Title, post2.Title)
 	require.Equal(t, post1.Subtitle, post2.Subtitle)
@@ -74,6 +77,7 @@ func TestUpdatePost(t *testing.T) {
 	require.NotEmpty(t, post2)
 
 	require.Equal(t, post1.ID, post2.ID)
+	require.Equal(t, post1.Owner, post2.Owner)
 	require.Equal(t, post1.Image, post2.Image)
 	require.Equal(t, post1.Title, post2.Title)
 	require.Equal(t, post1.Subtitle, post2.Subtitle)

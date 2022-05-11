@@ -51,6 +51,12 @@ func RandomImage() string {
 
 }
 
+func RandomOwner() string {
+
+	return RandomString(10)
+
+}
+
 func RandomTitle() string {
 
 	return RandomString(10)
