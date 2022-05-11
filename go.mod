@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.1.2
 	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.5
 	github.com/spf13/viper v1.11.0

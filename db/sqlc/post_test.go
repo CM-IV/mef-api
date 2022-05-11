@@ -12,10 +12,10 @@ import (
 )
 
 func createRandomPost(t *testing.T) Post {
-
+	user := createRandomUser(t)
 	arg := CreatePostParams{
 
-		Owner:    util.RandomOwner(),
+		Owner:    user.UserName,
 		Image:    util.RandomImage(),
 		Title:    util.RandomTitle(),
 		Subtitle: util.RandomSubtitle(),
