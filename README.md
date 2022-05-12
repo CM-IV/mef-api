@@ -42,6 +42,8 @@ Bring up the database container with the Makefile command `make composeup`.
 
 The container can be stopped with the `make composestop` command.  This frees up the terminal to be used for other things once the DB is restarted with `make composestart`.
 
+In order to run migrations, use the `make migrateup` and `make migratedown` commands.  The docker-compose file is setup to where the sh script runs the migrations for you on startup, however.
+
 Create the Postgres DB itself with a root username and owner.  The DB is named "meforum", this command can be utilized with `make createdb`.  In order to drop the DB, `make dropdb` is used.
 
 Additional commands for DB migrations, sqlc code generation, and testing will be explained later on in their respective sections.
