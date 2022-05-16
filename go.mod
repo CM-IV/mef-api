@@ -3,6 +3,7 @@ module github.com/CM-IV/mef-api
 go 1.18
 
 require (
+	github.com/gin-contrib/cors v1.3.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.1.2
 	github.com/json-iterator/go v1.1.12
@@ -13,7 +14,6 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
-	github.com/gin-contrib/cors v1.3.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect

@@ -19,7 +19,7 @@ func NewServer(store db.Store) *Server {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"PUT", "PATCH", "POST", "HEAD", "DELETE", "OPTIONS", "GET"},
+		AllowMethods:     []string{"PUT", "POST", "HEAD", "DELETE", "OPTIONS", "GET"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -27,11 +27,19 @@ func NewServer(store db.Store) *Server {
 
 	router.SetTrustedProxies(nil)
 
-	router.POST("/api/posts", server.createPost)
-	router.GET("/api/posts/:id", server.getPost)
-	router.GET("/api/posts", server.listPost)
-	router.PUT("/api/posts/:id", server.updatePost)
-	router.DELETE("/api/posts/:id", server.deletePost)
+	//API GROUP
+	api := router.Group("/api")
+	{
+		//POSTS ENDPOINTS
+		api.POST("/posts", server.createPost)
+		api.GET("/posts/:id", server.getPost)
+		api.GET("/posts", server.listPost)
+		api.PUT("/posts/:id", server.updatePost)
+		api.DELETE("/posts/:id", server.deletePost)
+
+		//USERS ENDPOINTS
+		api.POST("/users", server.createUser)
+	}
 
 	server.router = router
 	return server
