@@ -5,7 +5,7 @@ import (
 	"time"
 
 	db "github.com/CM-IV/mef-api/db/sqlc"
-	"github.com/CM-IV/mef-api/db/util"
+	"github.com/CM-IV/mef-api/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/lib/pq"

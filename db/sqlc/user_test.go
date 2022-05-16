@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CM-IV/mef-api/db/util"
+	"github.com/CM-IV/mef-api/util"
 	"github.com/stretchr/testify/require"
 )
 

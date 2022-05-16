@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/CM-IV/mef-api/db/util"
+	"github.com/CM-IV/mef-api/util"
 	_ "github.com/lib/pq"
 )
 
