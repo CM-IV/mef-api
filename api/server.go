@@ -1,21 +1,42 @@
 package api
 
 import (
+	"fmt"
+
 	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/token"
+	"github.com/CM-IV/mef-api/util"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 //Serves HTTP Requests for Posts
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
 //Create new HTTP Server and setup routes
-func NewServer(store db.Store) *Server {
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
 
-	server := &Server{store: store}
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: tokenMaker,
+	}
+
+	server.setupRouter()
+	return server, nil
+
+}
+
+func (server *Server) setupRouter() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -39,11 +60,10 @@ func NewServer(store db.Store) *Server {
 
 		//USERS ENDPOINTS
 		api.POST("/users", server.createUser)
+		api.POST("/users/login", server.loginUser)
 	}
 
 	server.router = router
-	return server
-
 }
 
 //Start runs HTTP Server on a specific address
