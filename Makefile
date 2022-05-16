@@ -1,8 +1,24 @@
 network:
 	docker network create mef-network
 
+purge:
+	docker-compose -f docker-compose-dev.yml down && docker image rmi mef-api_api
+
 postgres:
 	docker run --name postgres --network mef-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
+
+composeupdev:
+	docker-compose -f docker-compose-dev.yml up
+
+composestartdev:
+	docker-compose -f docker-compose-dev.yml start
+
+composestopdev:
+	docker-compose -f docker-compose-dev.yml stop	
+
+composedowndev:
+	docker-compose -f docker-compose-dev.yml down
+
 
 composeup:
 	docker-compose up
