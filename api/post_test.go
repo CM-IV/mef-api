@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	mockdb "github.com/CM-IV/mef-api/db/mock"
 	db "github.com/CM-IV/mef-api/db/sqlc"
 	"github.com/CM-IV/mef-api/util"
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
@@ -128,6 +128,246 @@ func TestGetPostAPI(t *testing.T) {
 
 }
 
+func TestCreatePostAPI(t *testing.T) {
+	post := randomPost()
+
+	testCases := []struct {
+		name          string
+		body          gin.H
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(recoder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{
+				"owner":    post.Owner,
+				"image":    post.Image,
+				"title":    post.Title,
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				arg := db.CreatePostParams{
+					Owner:    post.Owner,
+					Image:    post.Image,
+					Title:    post.Title,
+					Subtitle: post.Subtitle,
+					Content:  post.Content,
+				}
+
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(post, nil)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusCreated, recorder.Code)
+				requireBodyMatchPost(t, recorder.Body, post)
+			},
+		},
+		{
+			name: "InternalError",
+			body: gin.H{
+				"owner":    post.Owner,
+				"image":    post.Image,
+				"title":    post.Title,
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.Post{}, sql.ErrConnDone)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidTitle",
+			body: gin.H{
+				"owner":    post.Owner,
+				"image":    post.Image,
+				"title":    "",
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidOwner",
+			body: gin.H{
+				"owner":    "",
+				"image":    post.Image,
+				"title":    post.Title,
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			// Marshal body data to JSON
+			json := jsoniter.ConfigCompatibleWithStandardLibrary
+
+			data, err := json.Marshal(tc.body)
+			require.NoError(t, err)
+
+			url := "/api/posts"
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(recorder)
+		})
+	}
+}
+
+func TestListPostsAPI(t *testing.T) {
+	n := 5
+	posts := make([]db.Post, n)
+	for i := 0; i < n; i++ {
+		posts[i] = randomPost()
+	}
+
+	type Query struct {
+		pageID   int
+		pageSize int
+	}
+
+	testCases := []struct {
+		name          string
+		query         Query
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(recoder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			query: Query{
+				pageID:   1,
+				pageSize: n,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				arg := db.ListPostsParams{
+					Limit:  int32(n),
+					Offset: 0,
+				}
+
+				store.EXPECT().
+					ListPosts(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(posts, nil)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchPosts(t, recorder.Body, posts)
+			},
+		},
+		{
+			name: "InternalError",
+			query: Query{
+				pageID:   1,
+				pageSize: n,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					ListPosts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]db.Post{}, sql.ErrConnDone)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidPageID",
+			query: Query{
+				pageID:   -1,
+				pageSize: n,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					ListPosts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidPageID",
+			query: Query{
+				pageID:   1,
+				pageSize: 100000,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					ListPosts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			url := "/api/posts"
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			require.NoError(t, err)
+
+			// Add query parameters to request URL
+			q := request.URL.Query()
+			q.Add("page_id", fmt.Sprintf("%d", tc.query.pageID))
+			q.Add("page_size", fmt.Sprintf("%d", tc.query.pageSize))
+			request.URL.RawQuery = q.Encode()
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(recorder)
+		})
+	}
+}
+
 func randomPost() db.Post {
 
 	return db.Post{
@@ -144,15 +384,24 @@ func randomPost() db.Post {
 
 func requireBodyMatchPost(t *testing.T, body *bytes.Buffer, post db.Post) {
 
-	data, err := ioutil.ReadAll(body)
-	require.NoError(t, err)
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 
 	var gotPost db.Post
 
-	json := jsoniter.ConfigCompatibleWithStandardLibrary
-
-	err = json.Unmarshal(data, &gotPost)
+	err := json.NewDecoder(body).Decode(&gotPost)
 	require.NoError(t, err)
 	require.Equal(t, post, gotPost)
+
+}
+
+func requireBodyMatchPosts(t *testing.T, body *bytes.Buffer, posts []db.Post) {
+
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
+
+	var gotPosts []db.Post
+
+	err := json.NewDecoder(body).Decode(&gotPosts)
+	require.NoError(t, err)
+	require.Equal(t, posts, gotPosts)
 
 }
