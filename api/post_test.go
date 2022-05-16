@@ -112,7 +112,7 @@ func TestGetPostAPI(t *testing.T) {
 			tc.buildStubs(store)
 
 			//start test http server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/api/posts/%d", tc.postID)
