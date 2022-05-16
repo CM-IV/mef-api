@@ -3,9 +3,7 @@ package api
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -16,6 +14,7 @@ import (
 	"github.com/CM-IV/mef-api/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
@@ -184,6 +183,8 @@ func TestCreateUserAPI(t *testing.T) {
 			recorder := httptest.NewRecorder()
 
 			// Marshal body data to JSON
+			json := jsoniter.ConfigCompatibleWithStandardLibrary
+
 			data, err := json.Marshal(tc.body)
 			require.NoError(t, err)
 
@@ -212,11 +213,11 @@ func randomUser(t *testing.T) (user db.User, password string) {
 }
 
 func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
-	data, err := ioutil.ReadAll(body)
-	require.NoError(t, err)
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 
 	var gotUser db.User
-	err = json.Unmarshal(data, &gotUser)
+
+	err := json.NewDecoder(body).Decode(&gotUser)
 
 	require.NoError(t, err)
 	require.Equal(t, user.UserName, gotUser.UserName)
