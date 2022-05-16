@@ -2,6 +2,7 @@ package api
 
 import (
 	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,9 +17,15 @@ func NewServer(store db.Store) *Server {
 
 	server := &Server{store: store}
 	router := gin.Default()
-	router.SetTrustedProxies(nil)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"PUT", "PATCH", "POST", "HEAD", "DELETE", "OPTIONS", "GET"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
-	router.Use(CORSMiddleware())
+	router.SetTrustedProxies(nil)
 
 	router.POST("/api/posts", server.createPost)
 	router.GET("/api/posts/:id", server.getPost)
@@ -44,19 +51,19 @@ func errorResponse(err error) gin.H {
 
 }
 
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
+// func CORSMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
 
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+// 		c.Header("Access-Control-Allow-Origin", "*")
+// 		c.Header("Access-Control-Allow-Credentials", "true")
+// 		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+// 		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
+// 		if c.Request.Method == "OPTIONS" {
+// 			c.AbortWithStatus(204)
+// 			return
+// 		}
 
-		c.Next()
-	}
-}
+// 		c.Next()
+// 	}
+// }
