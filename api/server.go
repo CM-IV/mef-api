@@ -41,7 +41,7 @@ func (server *Server) setupRouter() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"PUT", "POST", "HEAD", "DELETE", "OPTIONS", "GET"},
-		AllowHeaders:     []string{"Origin"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -51,12 +51,18 @@ func (server *Server) setupRouter() {
 	//API GROUP
 	api := router.Group("/api")
 	{
-		//POSTS ENDPOINTS
-		api.POST("/posts", server.createPost)
+
+		authRoutes := router.Group("/api")
+		authRoutes.Use(authMiddleware(server.tokenMaker))
+		{
+			//PROTECTED ENDPOINTS
+			//POSTS ENDPOINTS
+			authRoutes.PUT("/posts/:id", server.updatePost)
+			authRoutes.DELETE("/posts/:id", server.deletePost)
+			authRoutes.POST("/posts", server.createPost)
+		}
 		api.GET("/posts/:id", server.getPost)
 		api.GET("/posts", server.listPost)
-		api.PUT("/posts/:id", server.updatePost)
-		api.DELETE("/posts/:id", server.deletePost)
 
 		//USERS ENDPOINTS
 		api.POST("/users", server.createUser)
