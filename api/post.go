@@ -2,15 +2,16 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 type createPostRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Image    string `json:"image" binding:"required"`
 	Title    string `json:"title" binding:"required"`
 	Subtitle string `json:"subtitle" binding:"required"`
@@ -40,9 +41,10 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.CreatePostParams{
 
-		Owner:    req.Owner,
+		Owner:    authPayload.UserName,
 		Image:    req.Image,
 		Title:    req.Title,
 		Subtitle: req.Subtitle,
@@ -135,7 +137,7 @@ func (server *Server) updatePost(ctx *gin.Context) {
 
 	}
 
-	_, err := server.store.GetPost(ctx, req.ID)
+	postObj, err := server.store.GetPost(ctx, req.ID)
 
 	if err != nil {
 
@@ -154,6 +156,13 @@ func (server *Server) updatePost(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err_json))
 		return
 
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if postObj.Owner != authPayload.UserName {
+		err := errors.New("post does not belong to the authenticated user, cannot update it")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
 	}
 
 	args := db.UpdatePostParams{

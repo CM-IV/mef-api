@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	mockdb "github.com/CM-IV/mef-api/db/mock"
 	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/token"
 	"github.com/CM-IV/mef-api/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
@@ -18,8 +20,8 @@ import (
 )
 
 func TestGetPostAPI(t *testing.T) {
-
-	post := randomPost()
+	user, _ := randomUser(t)
+	post := randomPost(user.UserName)
 
 	testCases := []struct {
 		title         string
@@ -129,22 +131,26 @@ func TestGetPostAPI(t *testing.T) {
 }
 
 func TestCreatePostAPI(t *testing.T) {
-	post := randomPost()
+	user, _ := randomUser(t)
+	post := randomPost(user.UserName)
 
 	testCases := []struct {
 		name          string
 		body          gin.H
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "OK",
 			body: gin.H{
-				"owner":    post.Owner,
 				"image":    post.Image,
 				"title":    post.Title,
 				"subtitle": post.Subtitle,
 				"content":  post.Content,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreatePostParams{
@@ -166,6 +172,28 @@ func TestCreatePostAPI(t *testing.T) {
 			},
 		},
 		{
+			name: "NoAuthorization",
+			body: gin.H{
+				"owner":    post.Owner,
+				"image":    post.Image,
+				"title":    post.Title,
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+				requireBodyMatchPost(t, recorder.Body, post)
+			},
+		},
+		{
 			name: "InternalError",
 			body: gin.H{
 				"owner":    post.Owner,
@@ -173,6 +201,9 @@ func TestCreatePostAPI(t *testing.T) {
 				"title":    post.Title,
 				"subtitle": post.Subtitle,
 				"content":  post.Content,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -193,6 +224,9 @@ func TestCreatePostAPI(t *testing.T) {
 				"subtitle": post.Subtitle,
 				"content":  post.Content,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreatePost(gomock.Any(), gomock.Any()).
@@ -210,6 +244,9 @@ func TestCreatePostAPI(t *testing.T) {
 				"title":    post.Title,
 				"subtitle": post.Subtitle,
 				"content":  post.Content,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -245,6 +282,7 @@ func TestCreatePostAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
 		})
@@ -252,10 +290,12 @@ func TestCreatePostAPI(t *testing.T) {
 }
 
 func TestListPostsAPI(t *testing.T) {
+	user, _ := randomUser(t)
+
 	n := 5
 	posts := make([]db.Post, n)
 	for i := 0; i < n; i++ {
-		posts[i] = randomPost()
+		posts[i] = randomPost(user.UserName)
 	}
 
 	type Query struct {
@@ -368,12 +408,12 @@ func TestListPostsAPI(t *testing.T) {
 	}
 }
 
-func randomPost() db.Post {
+func randomPost(owner string) db.Post {
 
 	return db.Post{
 
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Image:    util.RandomImage(),
 		Title:    util.RandomTitle(),
 		Subtitle: util.RandomSubtitle(),
