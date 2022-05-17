@@ -52,7 +52,7 @@ func (server *Server) setupRouter() {
 	api := router.Group("/api")
 	{
 
-		authRoutes := router.Group("/")
+		authRoutes := router.Group("/api")
 		authRoutes.Use(authMiddleware(server.tokenMaker))
 		{
 			//PROTECTED ENDPOINTS
