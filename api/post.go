@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	db "github.com/CM-IV/mef-api/db/sqlc"
@@ -22,6 +21,10 @@ type getPostRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
+type deletePostRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
 type listPostRequest struct {
 	PageID   int32 `form:"page_id" binding:"required,min=1"`
 	PageSize int32 `form:"page_size" binding:"required,min=5,max=15"`
@@ -29,6 +32,10 @@ type listPostRequest struct {
 
 type updatePostRequest struct {
 	Content string `json:"content" binding:"required"`
+}
+
+type updatePostRequestID struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
 func (server *Server) createPost(ctx *gin.Context) {
@@ -127,57 +134,41 @@ func (server *Server) listPost(ctx *gin.Context) {
 
 func (server *Server) updatePost(ctx *gin.Context) {
 
-	var req getPostRequest
-	var update_post updatePostRequest
+	var req updatePostRequest
+	var id updatePostRequestID
 
-	if err := ctx.ShouldBindUri(&req); err != nil {
-
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-
-	}
-
-	postObj, err := server.store.GetPost(ctx, req.ID)
-
-	if err != nil {
-
-		if err == sql.ErrNoRows {
-
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	if err_json := ctx.ShouldBindJSON(&update_post); err_json != nil {
+	if err_json := ctx.ShouldBindJSON(&req); err_json != nil {
 
 		ctx.JSON(http.StatusBadRequest, errorResponse(err_json))
 		return
 
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	if postObj.Owner != authPayload.UserName {
-		err := errors.New("post does not belong to the authenticated user, cannot update it")
-		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+	if err := ctx.ShouldBindUri(&id); err != nil {
+
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
+
 	}
 
 	args := db.UpdatePostParams{
 
-		ID:      req.ID,
-		Content: update_post.Content,
+		ID:      id.ID,
+		Content: req.Content,
 	}
 
 	post, err_update := server.store.UpdatePost(ctx, args)
 
 	if err_update != nil {
 
+		if err_update == sql.ErrNoRows {
+
+			ctx.JSON(http.StatusNotFound, errorResponse(err_update))
+			return
+
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err_update))
 		return
-
 	}
 
 	ctx.JSON(http.StatusOK, post)
@@ -186,7 +177,7 @@ func (server *Server) updatePost(ctx *gin.Context) {
 
 func (server *Server) deletePost(ctx *gin.Context) {
 
-	var req getPostRequest
+	var req deletePostRequest
 
 	if err := ctx.ShouldBindUri(&req); err != nil {
 
@@ -194,23 +185,16 @@ func (server *Server) deletePost(ctx *gin.Context) {
 
 	}
 
-	_, err := server.store.GetPost(ctx, req.ID)
-
-	if err != nil {
-
-		if err == sql.ErrNoRows {
-
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	}
-
 	del_err := server.store.DeletePost(ctx, req.ID)
 
 	if del_err != nil {
 
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		if del_err == sql.ErrNoRows {
+
+			ctx.JSON(http.StatusNotFound, errorResponse(del_err))
+
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(del_err))
 	}
 
 	ctx.JSON(http.StatusOK, del_err)
