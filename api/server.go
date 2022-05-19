@@ -51,6 +51,12 @@ func (server *Server) setupRouter() {
 	//API GROUP
 	api := router.Group("/api")
 	{
+		api.GET("/posts/:id", server.getPost)
+		api.GET("/posts", server.listPost)
+
+		//USERS ENDPOINTS
+		api.POST("/users", server.createUser)
+		api.POST("/users/login", server.loginUser)
 
 		authRoutes := router.Group("/api")
 		authRoutes.Use(authMiddleware(server.tokenMaker))
@@ -61,12 +67,7 @@ func (server *Server) setupRouter() {
 			authRoutes.DELETE("/posts/:id", server.deletePost)
 			authRoutes.POST("/posts", server.createPost)
 		}
-		api.GET("/posts/:id", server.getPost)
-		api.GET("/posts", server.listPost)
 
-		//USERS ENDPOINTS
-		api.POST("/users", server.createUser)
-		api.POST("/users/login", server.loginUser)
 	}
 
 	server.router = router
