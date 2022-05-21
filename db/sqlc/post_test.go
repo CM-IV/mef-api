@@ -107,15 +107,15 @@ func TestListPosts(t *testing.T) {
 
 	}
 
-	args := ListPostsParams{
+	// args := ListPostsParams{
 
-		Limit:  5,
-		Offset: 5,
-	}
+	// 	Limit:  5,
+	// 	Offset: 5,
+	// }
 
-	posts, err := testQueries.ListPosts(context.Background(), args)
+	posts, err := testQueries.ListPosts(context.Background())
 	require.NoError(t, err)
-	require.Len(t, posts, 5)
+	require.Len(t, posts, len(posts))
 
 	for _, post := range posts {
 

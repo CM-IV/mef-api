@@ -110,18 +110,18 @@ func (mr *MockStoreMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ListPosts mocks base method.
-func (m *MockStore) ListPosts(arg0 context.Context, arg1 db.ListPostsParams) ([]db.Post, error) {
+func (m *MockStore) ListPosts(arg0 context.Context) ([]db.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPosts", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListPosts", arg0)
 	ret0, _ := ret[0].([]db.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListPosts indicates an expected call of ListPosts.
-func (mr *MockStoreMockRecorder) ListPosts(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) ListPosts(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPosts", reflect.TypeOf((*MockStore)(nil).ListPosts), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPosts", reflect.TypeOf((*MockStore)(nil).ListPosts), arg0)
 }
 
 // ListUsers mocks base method.

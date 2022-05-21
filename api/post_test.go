@@ -627,31 +627,31 @@ func TestListPostsAPI(t *testing.T) {
 		posts[i] = randomPost(user.UserName)
 	}
 
-	type Query struct {
-		pageID   int
-		pageSize int
-	}
+	// type Query struct {
+	// 	pageID   int
+	// 	pageSize int
+	// }
 
 	testCases := []struct {
-		name          string
-		query         Query
+		name string
+		// query         Query
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(recoder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "OK",
-			query: Query{
-				pageID:   1,
-				pageSize: n,
-			},
+			// query: Query{
+			// 	pageID:   1,
+			// 	pageSize: n,
+			// },
 			buildStubs: func(store *mockdb.MockStore) {
-				arg := db.ListPostsParams{
-					Limit:  int32(n),
-					Offset: 0,
-				}
+				// arg := db.ListPostsParams{
+				// 	Limit:  int32(n),
+				// 	Offset: 0,
+				// }
 
 				store.EXPECT().
-					ListPosts(gomock.Any(), gomock.Eq(arg)).
+					ListPosts(gomock.Any()).
 					Times(1).
 					Return(posts, nil)
 			},
@@ -662,13 +662,13 @@ func TestListPostsAPI(t *testing.T) {
 		},
 		{
 			name: "InternalError",
-			query: Query{
-				pageID:   1,
-				pageSize: n,
-			},
+			// query: Query{
+			// 	pageID:   1,
+			// 	pageSize: n,
+			// },
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
-					ListPosts(gomock.Any(), gomock.Any()).
+					ListPosts(gomock.Any()).
 					Times(1).
 					Return([]db.Post{}, sql.ErrConnDone)
 			},
@@ -676,36 +676,36 @@ func TestListPostsAPI(t *testing.T) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
-		{
-			name: "InvalidPageID",
-			query: Query{
-				pageID:   -1,
-				pageSize: n,
-			},
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					ListPosts(gomock.Any(), gomock.Any()).
-					Times(0)
-			},
-			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
-			},
-		},
-		{
-			name: "InvalidPageID",
-			query: Query{
-				pageID:   1,
-				pageSize: 100000,
-			},
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					ListPosts(gomock.Any(), gomock.Any()).
-					Times(0)
-			},
-			checkResponse: func(recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
-			},
-		},
+		// {
+		// 	name: "InvalidPageID",
+		// 	query: Query{
+		// 		pageID:   -1,
+		// 		pageSize: n,
+		// 	},
+		// 	buildStubs: func(store *mockdb.MockStore) {
+		// 		store.EXPECT().
+		// 			ListPosts(gomock.Any()).
+		// 			Times(0)
+		// 	},
+		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
+		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
+		// 	},
+		// },
+		// {
+		// 	name: "InvalidPageID",
+		// 	query: Query{
+		// 		pageID:   1,
+		// 		pageSize: 100000,
+		// 	},
+		// 	buildStubs: func(store *mockdb.MockStore) {
+		// 		store.EXPECT().
+		// 			ListPosts(gomock.Any()).
+		// 			Times(0)
+		// 	},
+		// 	checkResponse: func(recorder *httptest.ResponseRecorder) {
+		// 		require.Equal(t, http.StatusBadRequest, recorder.Code)
+		// 	},
+		// },
 	}
 
 	for i := range testCases {
@@ -725,11 +725,11 @@ func TestListPostsAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			// Add query parameters to request URL
-			q := request.URL.Query()
-			q.Add("page_id", fmt.Sprintf("%d", tc.query.pageID))
-			q.Add("page_size", fmt.Sprintf("%d", tc.query.pageSize))
-			request.URL.RawQuery = q.Encode()
+			// // Add query parameters to request URL
+			// q := request.URL.Query()
+			// q.Add("page_id", fmt.Sprintf("%d", tc.query.pageID))
+			// q.Add("page_size", fmt.Sprintf("%d", tc.query.pageSize))
+			// request.URL.RawQuery = q.Encode()
 
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)

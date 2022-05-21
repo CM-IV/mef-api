@@ -25,10 +25,10 @@ type deletePostRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-type listPostRequest struct {
-	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=15"`
-}
+// type listPostRequest struct {
+// 	PageID   int32 `form:"page_id" binding:"required,min=1"`
+// 	PageSize int32 `form:"page_size" binding:"required,min=5,max=15"`
+// }
 
 type updatePostRequest struct {
 	Content string `json:"content" binding:"required"`
@@ -107,20 +107,20 @@ func (server *Server) getPost(ctx *gin.Context) {
 
 func (server *Server) listPost(ctx *gin.Context) {
 
-	var req listPostRequest
-	if err := ctx.ShouldBindQuery(&req); err != nil {
+	// var req listPostRequest
+	// if err := ctx.ShouldBindQuery(&req); err != nil {
 
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
+	// 	ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	// 	return
 
-	}
+	// }
 
-	args := db.ListPostsParams{
+	// args := db.ListPostsParams{
 
-		Limit:  req.PageSize,
-		Offset: (req.PageID - 1) * req.PageSize,
-	}
-	posts, err := server.store.ListPosts(ctx, args)
+	// 	Limit:  req.PageSize,
+	// 	Offset: (req.PageID - 1) * req.PageSize,
+	// }
+	posts, err := server.store.ListPosts(ctx)
 
 	if err != nil {
 

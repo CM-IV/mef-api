@@ -84,17 +84,10 @@ func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
 const listPosts = `-- name: ListPosts :many
 SELECT id, owner, image, title, subtitle, content, created_at FROM posts
 ORDER BY id
-LIMIT $1
-OFFSET $2
 `
 
-type ListPostsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, listPosts, arg.Limit, arg.Offset)
+func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, listPosts)
 	if err != nil {
 		return nil, err
 	}
