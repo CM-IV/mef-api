@@ -110,10 +110,10 @@ func (mr *MockStoreMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ListPosts mocks base method.
-func (m *MockStore) ListPosts(arg0 context.Context) ([]db.Post, error) {
+func (m *MockStore) ListPosts(arg0 context.Context) ([]db.ListPostsRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPosts", arg0)
-	ret0, _ := ret[0].([]db.Post)
+	ret0, _ := ret[0].([]db.ListPostsRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createPost = `-- name: CreatePost :one
@@ -82,26 +83,34 @@ func (q *Queries) GetPost(ctx context.Context, id int64) (Post, error) {
 }
 
 const listPosts = `-- name: ListPosts :many
-SELECT id, owner, image, title, subtitle, content, created_at FROM posts
+SELECT id, owner, image, title, subtitle, created_at FROM posts
 ORDER BY id
 `
 
-func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
+type ListPostsRow struct {
+	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
+	Image     string    `json:"image"`
+	Title     string    `json:"title"`
+	Subtitle  string    `json:"subtitle"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (q *Queries) ListPosts(ctx context.Context) ([]ListPostsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listPosts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Post{}
+	items := []ListPostsRow{}
 	for rows.Next() {
-		var i Post
+		var i ListPostsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Owner,
 			&i.Image,
 			&i.Title,
 			&i.Subtitle,
-			&i.Content,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
