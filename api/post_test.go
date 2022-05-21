@@ -368,6 +368,28 @@ func TestUpdatePostAPI(t *testing.T) {
 		},
 		{
 
+			title: "InvalidBody",
+			body: gin.H{
+				"content": -1,
+			},
+			postID: 0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					UpdatePost(gomock.Any(), gomock.Any()).
+					Times(0)
+
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				//check response
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+
+			},
+		},
+		{
+
 			title: "InvalidID",
 			body: gin.H{
 				"content": post.Content,
@@ -484,6 +506,27 @@ func TestCreatePostAPI(t *testing.T) {
 			},
 		},
 		{
+			name: "DuplicateTitle",
+			body: gin.H{
+				"image":    post.Image,
+				"title":    post.Title,
+				"subtitle": post.Subtitle,
+				"content":  post.Content,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(post, &pq.Error{Code: "23505"})
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+		{
 			name: "NoAuthorization",
 			body: gin.H{
 				"owner":    post.Owner,
@@ -524,6 +567,23 @@ func TestCreatePostAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidBody",
+			body: gin.H{
+				"owner": -1,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.UserName, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreatePost(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 	}
