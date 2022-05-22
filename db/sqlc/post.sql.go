@@ -7,8 +7,18 @@ package db
 
 import (
 	"context"
-	"math"
 )
+
+const countPosts = `-- name: CountPosts :one
+SELECT COUNT(*) as total_posts FROM posts
+`
+
+func (q *Queries) CountPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPosts)
+	var total_posts int64
+	err := row.Scan(&total_posts)
+	return total_posts, err
+}
 
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
@@ -89,19 +99,15 @@ LIMIT $1
 OFFSET $2
 `
 
-const countPosts = `-- name CountPosts :one
-Select COUNT(*) as total_posts FROM posts
-`
-
 type ListPostsParams struct {
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, float64, int, error) {
+func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, error) {
 	rows, err := q.db.QueryContext(ctx, listPosts, arg.Limit, arg.Offset)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, err
 	}
 	defer rows.Close()
 	items := []Post{}
@@ -116,28 +122,17 @@ func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, f
 			&i.Content,
 			&i.CreatedAt,
 		); err != nil {
-			return nil, 0, 0, err
+			return nil, err
 		}
 		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
-		return nil, 0, 0, err
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, 0, err
+		return nil, err
 	}
-
-	var totalRecords int
-
-	countRow := q.db.QueryRowContext(ctx, countPosts)
-	err = countRow.Scan(&totalRecords)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-
-	lastPage := math.Ceil(float64((totalRecords)) / float64(arg.Limit))
-
-	return items, lastPage, totalRecords, nil
+	return items, nil
 }
 
 const updatePost = `-- name: UpdatePost :one

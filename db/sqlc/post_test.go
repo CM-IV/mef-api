@@ -113,15 +113,13 @@ func TestListPosts(t *testing.T) {
 		Offset: 5,
 	}
 
-	posts, lastPage, totalRecords, err := testQueries.ListPosts(context.Background(), args)
+	posts, err := testQueries.ListPosts(context.Background(), args)
 	require.NoError(t, err)
 	require.Len(t, posts, 5)
 
 	for _, post := range posts {
 
 		require.NotEmpty(t, post)
-		require.NotNil(t, lastPage)
-		require.NotNil(t, totalRecords)
 
 	}
 

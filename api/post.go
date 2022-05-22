@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"math"
 	"net/http"
 
 	db "github.com/CM-IV/mef-api/db/sqlc"
@@ -108,6 +109,8 @@ func (server *Server) getPost(ctx *gin.Context) {
 func (server *Server) listPost(ctx *gin.Context) {
 
 	var req listPostRequest
+	var lastPage int64
+
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -120,7 +123,16 @@ func (server *Server) listPost(ctx *gin.Context) {
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
-	posts, lastPage, totalRecords, err := server.store.ListPosts(ctx, args)
+
+	totalRecords, err := server.store.CountPosts(ctx)
+
+	if err != nil {
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	posts, err := server.store.ListPosts(ctx, args)
 
 	if err != nil {
 
@@ -129,17 +141,15 @@ func (server *Server) listPost(ctx *gin.Context) {
 	}
 
 	var resp struct {
-		CurrentPage  int       `json:"current_page"`
-		PageSize     int       `json:"page_size"`
-		LastPage     int       `json:"last_page"`
-		TotalRecords int       `json:"total_records"`
+		TotalRecords int64     `json:"total_records"`
+		LastPage     int64     `json:"last_page"`
 		Posts        []db.Post `json:"posts"`
 	}
 
-	resp.CurrentPage = int(req.PageID)
-	resp.PageSize = int(req.PageSize)
-	resp.LastPage = int(lastPage)
+	lastPage = int64(math.Ceil(float64(totalRecords) / float64(args.Limit)))
+
 	resp.TotalRecords = totalRecords
+	resp.LastPage = lastPage
 	resp.Posts = posts
 
 	ctx.JSON(http.StatusOK, resp)

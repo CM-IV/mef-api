@@ -15,6 +15,9 @@ RETURNING *;
 SELECT * FROM posts
 WHERE id = $1 LIMIT 1;
 
+-- name: CountPosts :one
+SELECT COUNT(*) as total_posts FROM posts;
+
 -- name: ListPosts :many
 SELECT * FROM posts
 ORDER BY id
