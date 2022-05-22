@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const countPosts = `-- name: CountPosts :one
+SELECT COUNT(*) as total_posts FROM posts
+`
+
+func (q *Queries) CountPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPosts)
+	var total_posts int64
+	err := row.Scan(&total_posts)
+	return total_posts, err
+}
+
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
   owner,
