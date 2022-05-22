@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"math"
 )
 
 const createPost = `-- name: CreatePost :one
@@ -88,15 +89,19 @@ LIMIT $1
 OFFSET $2
 `
 
+const countPosts = `-- name CountPosts :one
+Select COUNT(*) as total_posts FROM posts
+`
+
 type ListPostsParams struct {
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, error) {
+func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, float64, int, error) {
 	rows, err := q.db.QueryContext(ctx, listPosts, arg.Limit, arg.Offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 	defer rows.Close()
 	items := []Post{}
@@ -111,17 +116,28 @@ func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]Post, e
 			&i.Content,
 			&i.CreatedAt,
 		); err != nil {
-			return nil, err
+			return nil, 0, 0, err
 		}
 		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
-	return items, nil
+
+	var totalRecords int
+
+	countRow := q.db.QueryRowContext(ctx, countPosts)
+	err = countRow.Scan(&totalRecords)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	lastPage := math.Ceil(float64((totalRecords)) / float64(arg.Limit))
+
+	return items, lastPage, totalRecords, nil
 }
 
 const updatePost = `-- name: UpdatePost :one

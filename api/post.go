@@ -120,7 +120,7 @@ func (server *Server) listPost(ctx *gin.Context) {
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
-	posts, err := server.store.ListPosts(ctx, args)
+	posts, lastPage, totalRecords, err := server.store.ListPosts(ctx, args)
 
 	if err != nil {
 
@@ -128,7 +128,21 @@ func (server *Server) listPost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, posts)
+	var resp struct {
+		CurrentPage  int       `json:"current_page"`
+		PageSize     int       `json:"page_size"`
+		LastPage     int       `json:"last_page"`
+		TotalRecords int       `json:"total_records"`
+		Posts        []db.Post `json:"posts"`
+	}
+
+	resp.CurrentPage = int(req.PageID)
+	resp.PageSize = int(req.PageSize)
+	resp.LastPage = int(lastPage)
+	resp.TotalRecords = totalRecords
+	resp.Posts = posts
+
+	ctx.JSON(http.StatusOK, resp)
 
 }
 
