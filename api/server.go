@@ -6,8 +6,10 @@ import (
 	db "github.com/CM-IV/mef-api/db/sqlc"
 	"github.com/CM-IV/mef-api/token"
 	"github.com/CM-IV/mef-api/util"
+	"github.com/Depado/ginprom"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 //Serves HTTP Requests for Posts
@@ -38,6 +40,14 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
+
+	p := ginprom.New(
+		ginprom.Engine(router),
+		ginprom.Subsystem("gin"),
+		ginprom.Ignore("/api/metrics"),
+	)
+	router.Use(p.Instrument())
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"PUT", "POST", "HEAD", "DELETE", "OPTIONS", "GET"},
@@ -66,6 +76,7 @@ func (server *Server) setupRouter() {
 			authRoutes.PUT("/posts/:id", server.updatePost)
 			authRoutes.DELETE("/posts/:id", server.deletePost)
 			authRoutes.POST("/posts", server.createPost)
+			authRoutes.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		}
 
 	}
