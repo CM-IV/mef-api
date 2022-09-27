@@ -4,6 +4,7 @@
 By [Charlie](https://home.civdev.xyz) (CM-IV)
 
 Dockerized REST API and PostgreSQL database used featuring sqlc type-safe Go generator.
+Hactoberfest 2022 contributers welcome for helping with documentation!
 
 ---
 
