@@ -17,7 +17,7 @@ Hactoberfest 2022 contributers welcome for helping with documentation!
 5. [Custom CRUD Implementation](#custom-crud-implementation)
 6. [Unit Tests and RSG Util](#unit-tests-and-rsg-util) (Documentation In Progress)
 7. [Mocked DB for HTTP API testing](#unit-tests-and-rsg-util) (Documentation In Progress)
-8. [Minimum Required Ports](#minimum-required-ports)(minimum required ports)
+8. [Minimum Required Ports](#minimum-required-ports) (Minimum Required Ports)
 
 ---
 
