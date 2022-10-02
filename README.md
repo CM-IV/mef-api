@@ -17,6 +17,7 @@ Hactoberfest 2022 contributers welcome for helping with documentation!
 5. [Custom CRUD Implementation](#custom-crud-implementation)
 6. [Unit Tests and RSG Util](#unit-tests-and-rsg-util) (Documentation In Progress)
 7. [Mocked DB for HTTP API testing](#unit-tests-and-rsg-util) (Documentation In Progress)
+8. [Ports](#required-ports)(minimum required ports)
 
 ---
 
@@ -700,3 +701,20 @@ func errorResponse(err error) gin.H {
 
 }
 ```
+
+
+--- 
+
+### Required System Ports
+
+Running the docker compose setup correctly has a few minimum port requirements. 
+
+- 5432
+- 8080
+
+A common error you may see is a failed PostgreSQL driver due to a port not being open.  
+
+```
+Error response from daemon: driver failed programming external connectivity on endpoint mef-api-master-postgres-1: Bind for 0.0.0.0:5432 failed: port is already allocated
+```
+
