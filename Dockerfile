@@ -1,5 +1,5 @@
 #Build stage
-FROM golang:1.18.2-alpine AS builder
+FROM golang:1.19.2-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY . .
 RUN go build -o main main.go
 RUN apk add curl
 RUN apk add netcat-openbsd
-RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.1/migrate.linux-amd64.tar.gz | tar xvz
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
 
 #Run stage
 FROM alpine
