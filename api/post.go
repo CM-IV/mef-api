@@ -2,15 +2,16 @@ package api
 
 import (
 	"database/sql"
+	"math"
 	"net/http"
 
 	db "github.com/CM-IV/mef-api/db/sqlc"
+	"github.com/CM-IV/mef-api/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 type createPostRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Image    string `json:"image" binding:"required"`
 	Title    string `json:"title" binding:"required"`
 	Subtitle string `json:"subtitle" binding:"required"`
@@ -18,6 +19,10 @@ type createPostRequest struct {
 }
 
 type getPostRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+type deletePostRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
@@ -30,6 +35,10 @@ type updatePostRequest struct {
 	Content string `json:"content" binding:"required"`
 }
 
+type updatePostRequestID struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
 func (server *Server) createPost(ctx *gin.Context) {
 
 	var req createPostRequest
@@ -40,9 +49,10 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.CreatePostParams{
 
-		Owner:    req.Owner,
+		Owner:    authPayload.UserName,
 		Image:    req.Image,
 		Title:    req.Title,
 		Subtitle: req.Subtitle,
@@ -99,6 +109,8 @@ func (server *Server) getPost(ctx *gin.Context) {
 func (server *Server) listPost(ctx *gin.Context) {
 
 	var req listPostRequest
+	var lastPage int64
+
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -111,6 +123,15 @@ func (server *Server) listPost(ctx *gin.Context) {
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
+
+	totalRecords, err := server.store.CountPosts(ctx)
+
+	if err != nil {
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	posts, err := server.store.ListPosts(ctx, args)
 
 	if err != nil {
@@ -119,56 +140,59 @@ func (server *Server) listPost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, posts)
+	var resp struct {
+		TotalRecords int64     `json:"total_records"`
+		LastPage     int64     `json:"last_page"`
+		Posts        []db.Post `json:"posts"`
+	}
+
+	lastPage = int64(math.Ceil(float64(totalRecords) / float64(args.Limit)))
+
+	resp.TotalRecords = totalRecords
+	resp.LastPage = lastPage
+	resp.Posts = posts
+
+	ctx.JSON(http.StatusOK, resp)
 
 }
 
 func (server *Server) updatePost(ctx *gin.Context) {
 
-	var req getPostRequest
-	var update_post updatePostRequest
+	var req updatePostRequest
+	var id updatePostRequestID
 
-	if err := ctx.ShouldBindUri(&req); err != nil {
-
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-
-	}
-
-	_, err := server.store.GetPost(ctx, req.ID)
-
-	if err != nil {
-
-		if err == sql.ErrNoRows {
-
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	if err_json := ctx.ShouldBindJSON(&update_post); err_json != nil {
+	if err_json := ctx.ShouldBindJSON(&req); err_json != nil {
 
 		ctx.JSON(http.StatusBadRequest, errorResponse(err_json))
 		return
 
 	}
 
+	if err := ctx.ShouldBindUri(&id); err != nil {
+
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+
+	}
+
 	args := db.UpdatePostParams{
 
-		ID:      req.ID,
-		Content: update_post.Content,
+		ID:      id.ID,
+		Content: req.Content,
 	}
 
 	post, err_update := server.store.UpdatePost(ctx, args)
 
 	if err_update != nil {
 
+		if err_update == sql.ErrNoRows {
+
+			ctx.JSON(http.StatusNotFound, errorResponse(err_update))
+			return
+
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err_update))
 		return
-
 	}
 
 	ctx.JSON(http.StatusOK, post)
@@ -177,7 +201,7 @@ func (server *Server) updatePost(ctx *gin.Context) {
 
 func (server *Server) deletePost(ctx *gin.Context) {
 
-	var req getPostRequest
+	var req deletePostRequest
 
 	if err := ctx.ShouldBindUri(&req); err != nil {
 
@@ -185,23 +209,16 @@ func (server *Server) deletePost(ctx *gin.Context) {
 
 	}
 
-	_, err := server.store.GetPost(ctx, req.ID)
-
-	if err != nil {
-
-		if err == sql.ErrNoRows {
-
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	}
-
 	del_err := server.store.DeletePost(ctx, req.ID)
 
 	if del_err != nil {
 
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		if del_err == sql.ErrNoRows {
+
+			ctx.JSON(http.StatusNotFound, errorResponse(del_err))
+
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(del_err))
 	}
 
 	ctx.JSON(http.StatusOK, del_err)

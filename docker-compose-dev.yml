@@ -23,6 +23,3 @@ services:
       - postgres
     entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ]
     command: [ "air" ]
-#Use this command to pre seed the db with SQL
-      
-#cat <./path/to/.sql> | docker exec -i <container_name> psql -U postgres -d <db_name>

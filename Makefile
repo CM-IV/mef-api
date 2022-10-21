@@ -57,7 +57,7 @@ test-insert:
 	go test -count=1 -v ./db/sqlc
 
 test:
-	go test -v -cover ./db/sqlc
+	go test -v -cover ./db/sqlc ./api ./token ./util
 
 server:
 	go run main.go
