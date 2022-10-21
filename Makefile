@@ -1,3 +1,5 @@
+include app.env
+
 network:
 	docker network create mef-network
 
@@ -8,16 +10,16 @@ postgres:
 	docker run --name postgres --network mef-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=postgres -d postgres:13-alpine
 
 composeupdev:
-	docker-compose -f docker-compose-dev.yml up
+	docker-compose --env-file app.env -f docker-compose-dev.yml up
 
 composestartdev:
-	docker-compose -f docker-compose-dev.yml start
+	docker-compose --env-file app.env -f docker-compose-dev.yml start
 
 composestopdev:
-	docker-compose -f docker-compose-dev.yml stop	
+	docker-compose  --env-file app.env -f docker-compose-dev.yml stop	
 
 composedowndev:
-	docker-compose -f docker-compose-dev.yml down
+	docker-compose  --env-file app.env -f docker-compose-dev.yml down
 
 
 composeup:
@@ -39,16 +41,16 @@ dropdb:
 	docker exec -it mef-api-postgres-1 dropdb meforum
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up
+	migrate -path db/migration -database $(DB_SOURCE) -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down
+	migrate -path db/migration -database $(DB_SOURCE) -verbose down
 
 migrateup1:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database $(DB_SOURCE) -verbose up 1
 
 migratedown1:
-	migrate -path db/migration -database "postgresql://root:postgres@localhost:5432/meforum?sslmode=disable" -verbose down 1
+	migrate -path db/migration -database $(DB_SOURCE) -verbose down 1
 
 sqlc:
 	sqlc generate
